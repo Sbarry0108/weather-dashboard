@@ -23,17 +23,16 @@ const userAction = async () => {
         setTimeout(3000);
         const myJson = await response.json(); //extract JSON from the http response
         // do something with myJson
-        console.log(myJson);
         let weatherArray = [];
         let tempList = myJson.list;
         let currentDay = 0 ;
         for(let i=0; i< tempList.length; i+=3) {
             let timeStamp = tempList[i].dt;
-            date = new Date(0);
+            let date = new Date(0);
             date.setUTCSeconds(timeStamp);
             if( i == 0 || date.getDate() > currentDay) {
                 let weather = {};
-                weather.date = date.getDate();
+                weather.date = date.toLocaleDateString();
                 weather.temp = tempList[i].main.temp;
                 weather.wind = tempList[i].wind.speed;
                 weather.humidity = tempList[i].main.humidity;
@@ -77,14 +76,19 @@ const userAction = async () => {
         tag.innerHTML = city;
         
         searchList.prepend(tag);
-        map.set(city,weatherArray);
+
+        localStorage.setItem(city, JSON.stringify(weatherArray));
         document.forms["myform"]["city"].value = "";
-        console.log(weatherArray);
         document.getElementById(city).onclick = function(){
             document.getElementById("weatherList").innerHTML = "";
-            weatherArray = map.get(city);
+            weatherArray = JSON.parse(localStorage.getItem(city));
+            console.log(JSON.parse(localStorage.getItem(city)));
             for(let i=0; i<weatherArray.length;i++) {
                 let weather = weatherArray[i];
+                let timeStamp = weather.dt;
+                let date = new Date(0);
+                date.setUTCSeconds(timeStamp);
+               
                 if(i!==0) {
                     let currentList = document.getElementById("weatherList");
                     let tag2 = document.createElement("div");
@@ -94,7 +98,7 @@ const userAction = async () => {
                     
 
                     tag2.className = "tile";
-                    let h = "<h5>" + date.toLocaleDateString() +"</h5>";
+                    let h = "<h5>" + weather.date +"</h5>";
                     h+= "<h5>Temp: "+ weather.temp + "°F"+ "</h5>";
                     h+= "<h5>Wind: " + weather.wind + " MPH"+ "</h5>";
                     h+= "<h5>Humidity: " + weather.humidity + " %</h5>";
@@ -102,7 +106,7 @@ const userAction = async () => {
                     tag2.appendChild(image);
                     currentList.appendChild(tag2);
                 } else {
-                    document.getElementById("title").innerHTML = city+ " (" + date.toLocaleDateString()+ ")";
+                    document.getElementById("title").innerHTML = city+ " (" + weather.date+ ")";
                     document.getElementById("temp").innerHTML = "Temp: " + weather.temp + "°F";
                     document.getElementById("wind").innerHTML = "Wind: " + weather.wind +" MPH";
                     document.getElementById("humidity").innerHTML = "Humidity: " + weather.humidity + " %";
